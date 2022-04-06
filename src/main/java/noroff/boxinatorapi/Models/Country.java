@@ -3,6 +3,8 @@ package noroff.boxinatorapi.Models;
 import com.fasterxml.jackson.annotation.JsonGetter;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -13,10 +15,14 @@ public class Country {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true)
+    @NotBlank
+    @Size(max = 60)
+    @Column(unique = true, nullable = false, length = 60)
     private String name;
 
-    @Column
+    @NotBlank
+    @Size(max = 2)
+    @Column(nullable = false)
     private int multiplier;
 
     @OneToMany(mappedBy = "destinationCountry")
@@ -47,7 +53,7 @@ public class Country {
         this.name = name;
     }
 
-    public int getMultiplier() {
+    public Integer getMultiplier() {
         return multiplier;
     }
 
