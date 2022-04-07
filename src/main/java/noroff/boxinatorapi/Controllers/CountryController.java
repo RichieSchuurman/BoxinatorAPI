@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import noroff.boxinatorapi.Models.CommonResponse;
 import noroff.boxinatorapi.Models.Country;
 import noroff.boxinatorapi.Services.CountryService;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 
 @RestController
+@SecurityRequirement(name = "keycloak_implicit")
 @RequestMapping("api/settings/countries")
 public class CountryController {
 
