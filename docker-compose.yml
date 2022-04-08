@@ -32,10 +32,9 @@ services:
       - keycloakdata:/var/lib/postgresql/data/pgdata
 
   keycloak:
-    image: jboss/keycloak
+    image: wizzn/keycloak:14
     restart: always
     environment:
-      KEYCLOAK_LOGLEVEL: DEBUG
       KEYCLOAK_USER: ${KEYCLOAK_USER}
       KEYCLOAK_PASSWORD: ${KEYCLOAK_PASSWORD}
       DB_VENDOR: postgres
