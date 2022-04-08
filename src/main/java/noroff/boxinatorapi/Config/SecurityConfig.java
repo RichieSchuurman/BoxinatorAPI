@@ -4,6 +4,7 @@ package noroff.boxinatorapi.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
@@ -12,6 +13,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtGra
 import java.util.Collection;
 import java.util.HashSet;
 
+@EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -32,7 +34,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     authorize
                             // Specify paths where public access is allowed
                             .antMatchers("/.well-known/oas/**").permitAll()
-                            .antMatchers("/swagger-ui/**").permitAll()
+                            .antMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
 
                             // All remaining paths require authentication
                             .anyRequest().authenticated();
