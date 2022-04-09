@@ -33,8 +33,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests(authorize -> {
                     authorize
                             // Specify paths where public access is allowed
-                            .antMatchers("/.well-known/oas/**").permitAll()
-                            .antMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                            .antMatchers("/boxinator-docs","/boxinator-docs/*").permitAll()
+                            .antMatchers("/swagger-ui/**").permitAll()
 
                             // All remaining paths require authentication
                             .anyRequest().authenticated();
