@@ -3,7 +3,6 @@ package noroff.boxinatorapi.Models;
 import com.fasterxml.jackson.annotation.JsonGetter;
 
 import javax.persistence.*;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -15,6 +14,9 @@ public class Account {
     private Long id;
 
     @Column
+    private String keycloakSubjectId;
+
+    @Column
     private String firstName;
 
     @Column
@@ -24,7 +26,7 @@ public class Account {
     private String email;
 
     @Column
-    private Date dateOfBirth;
+    private String dateOfBirth;
 
     @Column
     private String countryOfResidence;
@@ -59,6 +61,14 @@ public class Account {
         this.id = id;
     }
 
+    public String getKeycloakSubjectId() {
+        return keycloakSubjectId;
+    }
+
+    public void setKeycloakSubjectId(String keycloakSubjectId) {
+        this.keycloakSubjectId = keycloakSubjectId;
+    }
+
     public String getFirstName() {
         return firstName;
     }
@@ -83,11 +93,11 @@ public class Account {
         this.email = email;
     }
 
-    public Date getDateOfBirth() {
+    public String getDateOfBirth() {
         return dateOfBirth;
     }
 
-    public void setDateOfBirth(Date dateOfBirth) {
+    public void setDateOfBirth(String dateOfBirth) {
         this.dateOfBirth = dateOfBirth;
     }
 
