@@ -17,7 +17,6 @@ import io.swagger.v3.oas.annotations.security.SecurityScheme;
                         @OAuthScope(name = "openid", description = "OpenID Connect Endpoints"),
                         @OAuthScope(name = "profile", description = "Standard profile claims excluding phone and email"),
                         @OAuthScope(name = "email", description = "Include email address information in profile"),
-                        @OAuthScope(name = "groups", description = "Group membership information"),
 
                 })))
 public class OpenApi3Config {}
