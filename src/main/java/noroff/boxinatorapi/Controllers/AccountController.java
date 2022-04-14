@@ -12,10 +12,7 @@ import noroff.boxinatorapi.Models.CommonResponse;
 import noroff.boxinatorapi.Services.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -41,5 +38,22 @@ public class AccountController {
             HttpServletRequest request,
             @Parameter(description = "Keycloak subject id of the account to be fetched") @PathVariable String keycloakSubjectId) {
         return accountService.getAccountByKeycloakSubjectId(request, keycloakSubjectId);
+    }
+
+    @Operation(summary = "Update a specific account")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Updated the selected account",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Account.class))}),
+            @ApiResponse(responseCode = "404", description = "Account not found",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = CommonResponse.class))})
+    })
+    @PutMapping("/{keycloakSubjectId}")
+    public ResponseEntity<CommonResponse> updateAccount(
+            HttpServletRequest request,
+            @Parameter(description = "Keycloak subject id of the account to be updated") @PathVariable String keycloakSubjectId,
+            @RequestBody Account updatedAccount) {
+        return accountService.updateAccount(request, keycloakSubjectId, updatedAccount);
     }
 }

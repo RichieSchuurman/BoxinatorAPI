@@ -1,6 +1,7 @@
 package noroff.boxinatorapi.Services;
 
 import noroff.boxinatorapi.Models.Account;
+import noroff.boxinatorapi.Models.AccountType;
 import noroff.boxinatorapi.Models.CommonResponse;
 import noroff.boxinatorapi.Repositories.AccountRepository;
 import noroff.boxinatorapi.Utilities.Command;
@@ -21,16 +22,12 @@ public class AccountService {
     private AccountRepository accountRepository;
 
     public Account getAccountByJwt(Jwt principal) {
-        // TODO: Implement account type
         Account account = new Account();
         String email = principal.getClaimAsString("email");
         String keyCloakSubjectId = principal.getClaimAsString("sub");
         String firstName = principal.getClaimAsString("given_name");
         String lastName = principal.getClaimAsString("family_name");
-        String dateOfBirth = principal.getClaimAsString("dob");
-        String countryOfResidence = principal.getClaimAsString("country_of_residence");
-        String postalCode = principal.getClaimAsString("postal_code");
-        String contactNumber = principal.getClaimAsString("contact_number");
+        String userRole = principal.getClaimAsStringList("roles").get(0);
 
         if (accountRepository.existsAccountByEmail(email)) {
             Optional<Account> accountRepos = accountRepository.findAccountByEmail(email);
@@ -41,20 +38,7 @@ public class AccountService {
             account.setKeycloakSubjectId(keyCloakSubjectId);
             account.setFirstName(firstName);
             account.setLastName(lastName);
-
-            // Optional account attributes
-            if (dateOfBirth != null) {
-                account.setDateOfBirth(dateOfBirth);
-            }
-            if (countryOfResidence != null) {
-                account.setCountryOfResidence(countryOfResidence);
-            }
-            if (postalCode != null) {
-                account.setPostalCode(postalCode);
-            }
-            if (contactNumber != null) {
-                account.setContactNumber(contactNumber);
-            }
+            account.setAccountType(AccountType.valueOf(userRole));
 
             account = accountRepository.save(account);
         }
@@ -73,6 +57,45 @@ public class AccountService {
             account = accountRepos.get();
             commonResponse.data = account;
             commonResponse.message = "Found account with id: " + keyCloakSubjectId;
+            resp = HttpStatus.OK;
+        } else {
+            commonResponse.data = null;
+            commonResponse.message = "Account not found";
+            resp = HttpStatus.NOT_FOUND;
+        }
+
+        cmd.setResult(resp);
+        Logger.getInstance().logCommand(cmd);
+        return new ResponseEntity<>(commonResponse, resp);
+    }
+
+    public ResponseEntity<CommonResponse> updateAccount(HttpServletRequest request, String keyCloakSubjectId, Account updatedAccount) {
+        Account account;
+        Command cmd = new Command(request);
+        CommonResponse commonResponse = new CommonResponse();
+        HttpStatus resp;
+
+        if (accountRepository.existsAccountByKeycloakSubjectId(keyCloakSubjectId)) {
+            Optional<Account> accountRepos = accountRepository.findAccountByKeycloakSubjectId(keyCloakSubjectId);
+            account = accountRepos.get();
+
+            if (updatedAccount.getDateOfBirth() != null) {
+                account.setDateOfBirth(updatedAccount.getDateOfBirth());
+            }
+            if (updatedAccount.getContactNumber() != null) {
+                account.setContactNumber(updatedAccount.getContactNumber());
+            }
+            if (updatedAccount.getCountryOfResidence() != null) {
+                account.setCountryOfResidence(updatedAccount.getCountryOfResidence());
+            }
+            if (updatedAccount.getPostalCode() != null) {
+                account.setPostalCode(updatedAccount.getPostalCode());
+            }
+
+            account = accountRepository.save(account);
+
+            commonResponse.data = account;
+            commonResponse.message = "Updated account with id: " + keyCloakSubjectId;
             resp = HttpStatus.OK;
         } else {
             commonResponse.data = null;
