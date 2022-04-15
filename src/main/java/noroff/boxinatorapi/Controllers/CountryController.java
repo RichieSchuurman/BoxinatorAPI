@@ -12,6 +12,7 @@ import noroff.boxinatorapi.Models.Country;
 import noroff.boxinatorapi.Services.CountryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -24,7 +25,7 @@ public class CountryController {
     @Autowired
     private CountryService countryService;
 
-    @Operation(summary = "Get all countries")
+    @Operation(summary = "Get all countries (only accessible by registered users and administrators)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Found all countries",
                         content = { @Content(mediaType = "application/json",
@@ -35,7 +36,7 @@ public class CountryController {
         return countryService.getAllCountries(request);
     }
 
-    @Operation(summary = "Add a new country")
+    @Operation(summary = "Add a new country (only accessible by administrators)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Added new country",
                         content = { @Content(mediaType = "application/json",
@@ -44,12 +45,13 @@ public class CountryController {
                         content = { @Content(mediaType = "application/json",
                         schema = @Schema(implementation = CommonResponse.class))})
     })
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PostMapping
     public ResponseEntity<CommonResponse> addCountry(HttpServletRequest request, @RequestBody Country country) {
         return countryService.addCountry(request, country);
     }
 
-    @Operation(summary = "Update a specific country")
+    @Operation(summary = "Update a specific country (only accessible by administrators)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Updated the selected country",
                         content = { @Content(mediaType = "application/json",
@@ -58,6 +60,7 @@ public class CountryController {
                         content = { @Content(mediaType = "application/json",
                         schema = @Schema(implementation = CommonResponse.class))})
     })
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PutMapping("/{id}")
     public ResponseEntity<CommonResponse> updateCountry(HttpServletRequest request,
                                                         @Parameter(description = "id of the country to be updated") @PathVariable Long id,
