@@ -1,9 +1,9 @@
 package noroff.boxinatorapi.Models;
 
-public enum ShipmentStatus {
+public enum  ShipmentStatus {
     CREATED,
     RECEIVED,
     IN_TRANSIT,
-    COMPLETED,
+    COMPLETE,
     CANCELED,
 }
