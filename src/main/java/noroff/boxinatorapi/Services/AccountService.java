@@ -69,13 +69,21 @@ public class AccountService {
         return new ResponseEntity<>(commonResponse, resp);
     }
 
-    public ResponseEntity<CommonResponse> updateAccount(HttpServletRequest request, String keyCloakSubjectId, Account updatedAccount) {
+    public ResponseEntity<CommonResponse> updateAccount(
+            HttpServletRequest request,
+            String keyCloakSubjectId,
+            Account updatedAccount,
+            Jwt principal) {
         Account account;
         Command cmd = new Command(request);
         CommonResponse commonResponse = new CommonResponse();
-        HttpStatus resp;
+        HttpStatus resp = null;
 
-        if (accountRepository.existsAccountByKeycloakSubjectId(keyCloakSubjectId)) {
+        if (!principal.getClaimAsString("sub").equals(keyCloakSubjectId)) {
+            commonResponse.data = null;
+            commonResponse.message = "You are only allowed to update your own account";
+            resp = HttpStatus.FORBIDDEN;
+        } else if (accountRepository.existsAccountByKeycloakSubjectId(keyCloakSubjectId)) {
             Optional<Account> accountRepos = accountRepository.findAccountByKeycloakSubjectId(keyCloakSubjectId);
             account = accountRepos.get();
 
@@ -97,10 +105,6 @@ public class AccountService {
             commonResponse.data = account;
             commonResponse.message = "Updated account with id: " + keyCloakSubjectId;
             resp = HttpStatus.OK;
-        } else {
-            commonResponse.data = null;
-            commonResponse.message = "Account not found";
-            resp = HttpStatus.NOT_FOUND;
         }
 
         cmd.setResult(resp);
