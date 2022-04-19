@@ -1,7 +1,6 @@
 package noroff.boxinatorapi.Services;
 
 import noroff.boxinatorapi.Models.CommonResponse;
-import noroff.boxinatorapi.Models.Country;
 import noroff.boxinatorapi.Models.Shipment;
 import noroff.boxinatorapi.Models.ShipmentStatus;
 import noroff.boxinatorapi.Repositories.ShipmentRepository;
@@ -86,11 +85,11 @@ public class ShipmentService {
         return new ResponseEntity<>(commonResponse, resp);
     }
 
-    public ResponseEntity<CommonResponse> getAllShipmentsById(HttpServletRequest request, Long id) {
+    public ResponseEntity<CommonResponse> getShipmentById(HttpServletRequest request, Long id) {
         Command cmd = new Command(request);
 
         CommonResponse commonResponse = new CommonResponse();
-        commonResponse.data = shipmentRepository.findAll();
+        commonResponse.data = shipmentRepository.findById(id);
         commonResponse.message = "All shipments";
 
         HttpStatus resp = HttpStatus.OK;
@@ -98,10 +97,12 @@ public class ShipmentService {
         cmd.setResult(resp);
         Logger.getInstance().logCommand(cmd);
         return new ResponseEntity<>(commonResponse, resp);
-
     }
 
-    public ResponseEntity<CommonResponse> updateShipment(HttpServletRequest request, Long id) {
+    //TODO
+    //GET /shipments/customer/:customer_id
+
+    public ResponseEntity<CommonResponse> updateShipment(HttpServletRequest request, Long id, Shipment updatedShipment) {
         Shipment shipment;
         Command cmd = new Command(request);
         CommonResponse commonResponse = new CommonResponse();
@@ -111,10 +112,47 @@ public class ShipmentService {
             Optional<Shipment> shipmentRepos = shipmentRepository.findById(id);
             shipment = shipmentRepos.get();
 
+            if (updatedShipment.getReceiverName() != null) {
+                shipment.setReceiverName(updatedShipment.getReceiverName());
+            }
+
+            if (updatedShipment.getWeightOption() != 0) {
+                shipment.setWeightOption(updatedShipment.getWeightOption());
+            }
+
+            if (updatedShipment.getBoxColor() != null) {
+                shipment.setBoxColor(updatedShipment.getBoxColor());
+            }
+
+            if (updatedShipment.getDestinationCountry() != null) {
+                shipment.setDestinationCountry(updatedShipment.getDestinationCountry());
+            }
+
             shipment = shipmentRepository.save(shipment);
 
             commonResponse.data = shipment;
             commonResponse.message = "Updated shipment with id: " + shipment.getId();
+            resp = HttpStatus.OK;
+        } else {
+            commonResponse.data = null;
+            commonResponse.message = "Shipment with id " + id + " not found";
+            resp = HttpStatus.NOT_FOUND;
+        }
+
+        cmd.setResult(resp);
+        Logger.getInstance().logCommand(cmd);
+        return new ResponseEntity<>(commonResponse, resp);
+    }
+
+    public ResponseEntity<CommonResponse> deleteShipment(HttpServletRequest request, Long id) {
+        Command cmd = new Command(request);
+
+        CommonResponse commonResponse = new CommonResponse();
+        HttpStatus resp;
+
+        if (shipmentRepository.existsById(id)) {
+            shipmentRepository.deleteById(id);
+            commonResponse.message = "Deleted shipment with id: " + id;
             resp = HttpStatus.OK;
         } else {
             commonResponse.data = null;

@@ -53,7 +53,19 @@ public class ShipmentController {
         return shipmentService.getCompletedShipments(request, shipmentStatus);
     }
 
+    @Operation(summary = "Get all cancelled shipments")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Found all cancelled shipments",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Shipment.class))})
+    })
+    @GetMapping
+    public ResponseEntity<CommonResponse> getCancelledShipments(HttpServletRequest request,
+                                                                @RequestParam("shipmentStatus") ShipmentStatus shipmentStatus) {
 
+
+        return shipmentService.getCanceledShipments(request, shipmentStatus);
+    }
 
     @Operation(summary = "Add a new shipment")
     @ApiResponses(value = {
@@ -80,9 +92,39 @@ public class ShipmentController {
     })
     @PutMapping("/{id}")
     public ResponseEntity<CommonResponse> updateShipment(HttpServletRequest request,
-                                                        @Parameter(description = "id of the shipment to be updated") @PathVariable Long id) {
-        return shipmentService.updateShipment(request, id);
+                                                        @Parameter(description = "id of the shipment to be updated") @PathVariable Long id,
+                                                         @RequestBody Shipment updatedShipment) {
+        return shipmentService.updateShipment(request, id, updatedShipment);
     }
 
+    @Operation(summary = "Get shipment by id")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Found shipment with id",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Shipment.class))})
+    })
+    @GetMapping
+    public ResponseEntity<CommonResponse> getShipmentById(HttpServletRequest request,
+                                                          @Parameter(description = "id of shipment to be searched") @PathVariable Long id) {
+        return shipmentService.getShipmentById(request, id);
+    }
+
+    //TODO
+    //GET /shipments/customer/:customer_id
+
+    @Operation(summary = "Delete a specific shipment")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Delete the selected shipment",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Country.class))}),
+            @ApiResponse(responseCode = "404", description = "Shipment not found",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = CommonResponse.class))})
+    })
+    @PutMapping("/{id}")
+    public ResponseEntity<CommonResponse> deleteShipment(HttpServletRequest request,
+                                                         @Parameter(description = "id of the shipment to be deleted") @PathVariable Long id) {
+        return shipmentService.deleteShipment(request, id);
+    }
 
 }
