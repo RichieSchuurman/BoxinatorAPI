@@ -39,6 +39,7 @@ public class ShipmentController {
         return shipmentService.getAllShipments(request);
     }
 
+    //TODO add specific enum type to API call
     @Operation(summary = "Get all completed shipments")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Found all completed shipments",
@@ -53,6 +54,7 @@ public class ShipmentController {
         return shipmentService.getCompletedShipments(request, shipmentStatus);
     }
 
+    //TODO add specific enum type to API call?
     @Operation(summary = "Get all cancelled shipments")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Found all cancelled shipments",
@@ -103,7 +105,7 @@ public class ShipmentController {
                     content = { @Content(mediaType = "application/json",
                             schema = @Schema(implementation = Shipment.class))})
     })
-    @GetMapping
+    @GetMapping("/{id}")
     public ResponseEntity<CommonResponse> getShipmentById(HttpServletRequest request,
                                                           @Parameter(description = "id of shipment to be searched") @PathVariable Long id) {
         return shipmentService.getShipmentById(request, id);
@@ -121,7 +123,7 @@ public class ShipmentController {
                     content = { @Content(mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class))})
     })
-    @PutMapping("/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<CommonResponse> deleteShipment(HttpServletRequest request,
                                                          @Parameter(description = "id of the shipment to be deleted") @PathVariable Long id) {
         return shipmentService.deleteShipment(request, id);
