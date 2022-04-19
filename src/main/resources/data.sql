@@ -1,22 +1,22 @@
-INSERT INTO account (
-    first_name,
-    last_name,
-    email,
-    date_of_birth,
-    country_of_residence,
-    postal_code,
-    contact_number,
-    account_type
-    ) VALUES (
-    'James',
-    'Gosling',
-    'j.gosling@gmail.com',
-    '1980-01-01',
-    'Denmark',
-    '1111AA',
-    '+31612345678',
-    'REGISTERED_USER'
-);
+-- INSERT INTO account (
+--     first_name,
+--     last_name,
+--     email,
+--     date_of_birth,
+--     country_of_residence,
+--     postal_code,
+--     contact_number,
+--     account_type
+--     ) VALUES (
+--     'James',
+--     'Gosling',
+--     'j.gosling@gmail.com',
+--     '1980-01-01',
+--     'Denmark',
+--     '1111AA',
+--     '+31612345678',
+--     'REGISTERED_USER'
+-- );
 
 INSERT INTO country (name, multiplier) VALUES ('Netherlands', 4);
 INSERT INTO country (name, multiplier) VALUES ('Germany', 5);

@@ -48,11 +48,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     // Convert Jwt scopes claim to GrantedAuthorities
                     JwtGrantedAuthoritiesConverter scopeConverter = new JwtGrantedAuthoritiesConverter();
 
-                    // Convert Jwt groups claim to GrantedAuthorities
-                    JwtGrantedAuthoritiesConverter groupConverter = new JwtGrantedAuthoritiesConverter();
-                    groupConverter.setAuthorityPrefix("GROUP_");
-                    groupConverter.setAuthoritiesClaimName("groups");
-
                     // Convert Jwt roles claim to GrantedAuthorities
                     JwtGrantedAuthoritiesConverter roleConverter = new JwtGrantedAuthoritiesConverter();
                     roleConverter.setAuthorityPrefix("ROLE_");
@@ -67,15 +62,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         // jwt["roles"] -> new GrantedAuthority("ROLE_roleName")
                         Collection<GrantedAuthority> roles = roleConverter.convert(jwt);
 
-                        // This will read the 'groups' claim you configured above
-                        // jwt["groups"] -> new GrantedAuthority("GROUP_groupName")
-                        Collection<GrantedAuthority> groups = groupConverter.convert(jwt);
-
                         // Merge the above sets
                         HashSet<GrantedAuthority> union = new HashSet<>();
                         union.addAll(scopes);
                         union.addAll(roles);
-                        union.addAll(groups);
 
                         for (var a : union) {
                             logger.warn("JWT Authority: {}", a.getAuthority());
