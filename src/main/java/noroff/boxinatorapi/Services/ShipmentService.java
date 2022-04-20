@@ -1,17 +1,18 @@
 package noroff.boxinatorapi.Services;
 
-import noroff.boxinatorapi.Models.CommonResponse;
-import noroff.boxinatorapi.Models.Shipment;
-import noroff.boxinatorapi.Models.ShipmentStatus;
+import noroff.boxinatorapi.Models.*;
+import noroff.boxinatorapi.Repositories.CountryRepository;
 import noroff.boxinatorapi.Repositories.ShipmentRepository;
 import noroff.boxinatorapi.Utilities.Command;
 import noroff.boxinatorapi.Utilities.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -20,19 +21,32 @@ public class ShipmentService {
     @Autowired
     private ShipmentRepository shipmentRepository;
 
-    public ResponseEntity<CommonResponse> getAllShipments(HttpServletRequest request) {
+    @Autowired
+    private CountryRepository countryRepository;
+
+    @Autowired
+    private AccountService accountService;
+
+    public ResponseEntity<CommonResponse> getAllShipments(HttpServletRequest request, Jwt principal) {
+        String userRole = principal.getClaimAsStringList("roles").get(0);
+        List<Shipment> shipments;
         Command cmd = new Command(request);
-
         CommonResponse commonResponse = new CommonResponse();
-        commonResponse.data = shipmentRepository.findAll();
-        commonResponse.message = "All shipments";
 
+        if (AccountType.valueOf(userRole).equals(AccountType.ADMINISTRATOR)) {
+            shipments = shipmentRepository.findAll();
+        } else {
+            Account sender = accountService.getAccountByJwt(principal);
+            shipments = shipmentRepository.findAllBySender(sender);
+        }
+
+        commonResponse.data = shipments;
+        commonResponse.message = "All shipments";
         HttpStatus resp = HttpStatus.OK;
 
         cmd.setResult(resp);
         Logger.getInstance().logCommand(cmd);
         return new ResponseEntity<>(commonResponse, resp);
-
     }
 
     public ResponseEntity<CommonResponse> getCompletedShipments(HttpServletRequest request, ShipmentStatus shipmentStatus) {
@@ -69,16 +83,10 @@ public class ShipmentService {
 
         CommonResponse commonResponse = new CommonResponse();
 
-        if (shipmentRepository.existsShipmentByReceiverName(shipment.getReceiverName())) {
-            commonResponse.data = null;
-            commonResponse.message = "The country " + shipment.getReceiverName() + " has already been added";
-            resp = HttpStatus.BAD_REQUEST;
-        } else {
-            shipment = shipmentRepository.save(shipment);
-            commonResponse.data = shipment;
-            commonResponse.message = "New country added, with id: " + shipment.getId();
-            resp = HttpStatus.CREATED;
-        }
+        shipment = shipmentRepository.save(shipment);
+        commonResponse.data = shipment;
+        commonResponse.message = "New shipment added, with id: " + shipment.getId();
+        resp = HttpStatus.CREATED;
 
         cmd.setResult(resp);
         Logger.getInstance().logCommand(cmd);

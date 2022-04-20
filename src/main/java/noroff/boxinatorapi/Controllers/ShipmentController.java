@@ -15,6 +15,9 @@ import noroff.boxinatorapi.Models.ShipmentStatus;
 import noroff.boxinatorapi.Services.ShipmentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -28,15 +31,15 @@ public class ShipmentController {
     @Autowired
     private ShipmentService shipmentService;
 
-    @Operation(summary = "Get all shipments")
+    @Operation(summary = "Get all shipments (only accessible by registered users and administrators)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Found all shipments",
                     content = { @Content(mediaType = "application/json",
                             schema = @Schema(implementation = Shipment.class))})
     })
     @GetMapping
-    public ResponseEntity<CommonResponse> getAllShipments(HttpServletRequest request) {
-        return shipmentService.getAllShipments(request);
+    public ResponseEntity<CommonResponse> getAllShipments(HttpServletRequest request, @AuthenticationPrincipal Jwt principal) {
+        return shipmentService.getAllShipments(request, principal);
     }
 
     //TODO add specific enum type to API call
@@ -46,7 +49,7 @@ public class ShipmentController {
                     content = { @Content(mediaType = "application/json",
                             schema = @Schema(implementation = Shipment.class))})
     })
-    @GetMapping
+    @GetMapping("/complete")
     public ResponseEntity<CommonResponse> getCompletedShipments(HttpServletRequest request,
                                                                 @RequestParam("shipmentStatus") ShipmentStatus shipmentStatus) {
 
@@ -61,7 +64,7 @@ public class ShipmentController {
                     content = { @Content(mediaType = "application/json",
                             schema = @Schema(implementation = Shipment.class))})
     })
-    @GetMapping
+    @GetMapping("/cancelled")
     public ResponseEntity<CommonResponse> getCancelledShipments(HttpServletRequest request,
                                                                 @RequestParam("shipmentStatus") ShipmentStatus shipmentStatus) {
 
@@ -114,7 +117,7 @@ public class ShipmentController {
     //TODO
     //GET /shipments/customer/:customer_id
 
-    @Operation(summary = "Delete a specific shipment")
+    @Operation(summary = "Delete a specific shipment (only accessible by administrators)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Delete the selected shipment",
                     content = { @Content(mediaType = "application/json",
@@ -123,10 +126,10 @@ public class ShipmentController {
                     content = { @Content(mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class))})
     })
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @DeleteMapping("/{id}")
     public ResponseEntity<CommonResponse> deleteShipment(HttpServletRequest request,
                                                          @Parameter(description = "id of the shipment to be deleted") @PathVariable Long id) {
         return shipmentService.deleteShipment(request, id);
     }
-
 }
