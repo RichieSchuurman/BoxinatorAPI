@@ -10,6 +10,7 @@ import java.util.List;
 
 @Repository
 public interface ShipmentRepository extends JpaRepository<Shipment, Long> {
-    String findAllByShipmentStatus(ShipmentStatus shipmentStatus);
+    List<Shipment> findAllByShipmentStatus(ShipmentStatus shipmentStatus);
+    List<Shipment> findAllBySenderAndShipmentStatus(Account sender, ShipmentStatus shipmentStatus);
     List<Shipment> findAllBySender(Account sender);
 }
