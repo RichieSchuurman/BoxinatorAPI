@@ -37,6 +37,12 @@ public class Country {
         return null;
     }
 
+    public Country () {}
+
+    public Country(String name) {
+        this.name = name;
+    }
+
     public Long getId() {
         return id;
     }

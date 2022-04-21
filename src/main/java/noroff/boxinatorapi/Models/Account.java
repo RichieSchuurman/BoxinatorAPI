@@ -1,6 +1,8 @@
 package noroff.boxinatorapi.Models;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
 import java.util.List;
@@ -10,11 +12,7 @@ import java.util.stream.Collectors;
 public class Account {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column
-    private String keycloakSubjectId;
+    private String id;
 
     @Column
     private String firstName;
@@ -42,6 +40,7 @@ public class Account {
     private AccountType accountType;
 
     @OneToMany(mappedBy = "sender", fetch = FetchType.LAZY)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private List<Shipment> shipments;
 
     @JsonGetter("shipments")
@@ -53,20 +52,18 @@ public class Account {
         return null;
     }
 
-    public Long getId() {
-        return id;
-    }
+    public Account() {}
 
-    public void setId(Long id) {
+    public Account(String id) {
         this.id = id;
     }
 
-    public String getKeycloakSubjectId() {
-        return keycloakSubjectId;
+    public String getId() {
+        return id;
     }
 
-    public void setKeycloakSubjectId(String keycloakSubjectId) {
-        this.keycloakSubjectId = keycloakSubjectId;
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getFirstName() {
