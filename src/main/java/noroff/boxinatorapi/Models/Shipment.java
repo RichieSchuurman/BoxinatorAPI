@@ -15,7 +15,7 @@ public class Shipment {
     private String receiverName;
 
     @Column
-    private int weightOption;
+    private Integer weightOption;
 
     @Column
     private String boxColor;
@@ -64,11 +64,11 @@ public class Shipment {
         this.receiverName = receiverName;
     }
 
-    public int getWeightOption() {
+    public Integer getWeightOption() {
         return weightOption;
     }
 
-    public void setWeightOption(int weightOption) {
+    public void setWeightOption(Integer weightOption) {
         this.weightOption = weightOption;
     }
 
