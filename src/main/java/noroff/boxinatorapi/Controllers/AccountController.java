@@ -12,6 +12,7 @@ import noroff.boxinatorapi.Models.CommonResponse;
 import noroff.boxinatorapi.Services.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
@@ -35,14 +36,29 @@ public class AccountController {
                         content = { @Content(mediaType = "application/json",
                         schema = @Schema(implementation = CommonResponse.class))})
     })
-    @GetMapping("/{keycloakSubjectId}")
-    public ResponseEntity<CommonResponse> getAccountByKeycloakSubjectId(
-            HttpServletRequest request,
-            @Parameter(description = "Keycloak subject id of the account to be fetched") @PathVariable String keycloakSubjectId) {
-        return accountService.getAccountByKeycloakSubjectId(request, keycloakSubjectId);
+    @PreAuthorize("hasRole('ADMINISTRATOR') or hasRole('REGISTERED_USER')")
+    @GetMapping("/{id}")
+    public ResponseEntity<CommonResponse> getAccountById(
+            HttpServletRequest request, @Parameter(description = "id of the account to be fetched") @PathVariable String id) {
+        return accountService.getAccountById(request, id);
     }
 
-    @Operation(summary = "Update a specific account (only accessible by the registered user who owns this account)")
+    @Operation(summary = "Add a new account (only accessible by administrators)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Added the new account",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Account.class))}),
+            @ApiResponse(responseCode = "400", description = "Account already exists",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = CommonResponse.class))})
+    })
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    @PostMapping
+    public ResponseEntity<CommonResponse> addAccount(HttpServletRequest request, @RequestBody Account account) {
+        return accountService.addAccount(request, account);
+    }
+
+    @Operation(summary = "Update a specific account (only accessible by the registered user who owns this account and administrators)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Updated the selected account",
                     content = { @Content(mediaType = "application/json",
@@ -51,12 +67,30 @@ public class AccountController {
                     content = { @Content(mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class))})
     })
-    @PutMapping("/{keycloakSubjectId}")
+    @PreAuthorize("hasRole('ADMINISTRATOR') or hasRole('REGISTERED_USER')")
+    @PutMapping("/{id}")
     public ResponseEntity<CommonResponse> updateAccount(
             HttpServletRequest request,
-            @Parameter(description = "Keycloak subject id of the account to be updated") @PathVariable String keycloakSubjectId,
+            @Parameter(description = "id of the account to be updated") @PathVariable  String id,
             @RequestBody Account updatedAccount,
             @AuthenticationPrincipal Jwt principal) {
-        return accountService.updateAccount(request, keycloakSubjectId, updatedAccount, principal);
+        return accountService.updateAccount(request, id, updatedAccount, principal);
+    }
+
+    @Operation(summary = "Delete an account (only accessible by administrators)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Deleted the selected account",
+                        content = { @Content(mediaType = "application/json",
+                        schema = @Schema(implementation = Account.class))}),
+            @ApiResponse(responseCode = "404", description = "Account to be deleted not found",
+                        content = { @Content(mediaType = "application/json",
+                        schema = @Schema(implementation = CommonResponse.class))})
+    })
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<CommonResponse> deleteAccount(
+            HttpServletRequest request,
+            @Parameter(description = "id of the account to be deleted") @PathVariable String id) {
+        return accountService.deleteAccount(request, id);
     }
 }
