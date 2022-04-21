@@ -8,8 +8,8 @@ WORKDIR /app
 ENV PORT 8080
 ENV SPRING_PROFILE production
 ENV DATABASE_URL ""
-ENV ISSUER_URL "http://localhost:8083/auth/realms/boxinator"
-ENV JWKS_URI "http://keycloak:8080/auth/realms/boxinator/protocol/openid-connect/certs"
+ENV ISSUER_URL "https://boxinator-app-keycloak.herokuapp.com/auth/realms/boxinator"
+ENV JWKS_URI "https://boxinator-app-keycloak.herokuapp.com/auth/realms/boxinator/protocol/openid-connect/certs"
 ENV CLIENT_ID "client-id"
 ENV CLIENT_SECRET "client-secret"
 ENV DDL_AUTO "create"
