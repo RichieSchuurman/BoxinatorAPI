@@ -45,10 +45,10 @@ public class ShipmentController {
             @ApiResponse(responseCode = "200", description = "Found the selected shipment",
                     content = { @Content(mediaType = "application/json",
                             schema = @Schema(implementation = Shipment.class))}),
-            @ApiResponse(responseCode = "404", description = "Shipment not found",
+            @ApiResponse(responseCode = "403", description = "Users can only view their own shipment",
                     content = { @Content(mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class))}),
-            @ApiResponse(responseCode = "403", description = "Users can only view their own shipment",
+            @ApiResponse(responseCode = "404", description = "Shipment not found",
                     content = { @Content(mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class))})
     })
@@ -122,10 +122,10 @@ public class ShipmentController {
             @ApiResponse(responseCode = "200", description = "Updated the selected shipment",
                     content = { @Content(mediaType = "application/json",
                             schema = @Schema(implementation = Shipment.class))}),
-            @ApiResponse(responseCode = "404", description = "Shipment not found",
+            @ApiResponse(responseCode = "403", description = "Users can only update their own shipment",
                     content = { @Content(mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class))}),
-            @ApiResponse(responseCode = "403", description = "Users can only update their own shipment",
+            @ApiResponse(responseCode = "404", description = "Shipment not found",
                     content = { @Content(mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class))})
     })
@@ -141,9 +141,8 @@ public class ShipmentController {
 
     @Operation(summary = "Delete a specific shipment (only accessible by administrators)")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "Deleted the selected shipment",
-                    content = { @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = Shipment.class))}),
+            @ApiResponse(responseCode = "204", description = "Deleted the selected shipment"),
+            @ApiResponse(responseCode = "403", description = "Only administrators can delete a shipment"),
             @ApiResponse(responseCode = "404", description = "Shipment not found",
                     content = { @Content(mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class))})

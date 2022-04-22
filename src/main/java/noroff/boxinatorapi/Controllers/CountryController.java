@@ -43,7 +43,8 @@ public class CountryController {
                         schema = @Schema(implementation = Country.class))}),
             @ApiResponse(responseCode = "400", description = "Country has already been added",
                         content = { @Content(mediaType = "application/json",
-                        schema = @Schema(implementation = CommonResponse.class))})
+                        schema = @Schema(implementation = CommonResponse.class))}),
+            @ApiResponse(responseCode = "403", description = "Only administrators can add a new country")
     })
     @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PostMapping
@@ -56,6 +57,7 @@ public class CountryController {
             @ApiResponse(responseCode = "200", description = "Updated the selected country",
                         content = { @Content(mediaType = "application/json",
                         schema = @Schema(implementation = Country.class))}),
+            @ApiResponse(responseCode = "403", description = "Only administrators can update a new country"),
             @ApiResponse(responseCode = "404", description = "Country not found",
                         content = { @Content(mediaType = "application/json",
                         schema = @Schema(implementation = CommonResponse.class))})

@@ -50,7 +50,8 @@ public class AccountController {
                             schema = @Schema(implementation = Account.class))}),
             @ApiResponse(responseCode = "400", description = "Account already exists",
                     content = { @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = CommonResponse.class))})
+                            schema = @Schema(implementation = CommonResponse.class))}),
+            @ApiResponse(responseCode = "403", description = "Only administrators can add a new account")
     })
     @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PostMapping
@@ -79,9 +80,8 @@ public class AccountController {
 
     @Operation(summary = "Delete an account (only accessible by administrators)")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "Deleted the selected account",
-                        content = { @Content(mediaType = "application/json",
-                        schema = @Schema(implementation = Account.class))}),
+            @ApiResponse(responseCode = "204", description = "Deleted the selected account"),
+            @ApiResponse(responseCode = "403", description = "Only administrators can delete an account"),
             @ApiResponse(responseCode = "404", description = "Account to be deleted not found",
                         content = { @Content(mediaType = "application/json",
                         schema = @Schema(implementation = CommonResponse.class))})
