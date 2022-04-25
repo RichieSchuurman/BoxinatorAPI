@@ -35,7 +35,7 @@ public class Shipment {
     @JsonGetter("sender")
     public String sender() {
         if (sender != null) {
-            return "api/account/" + sender.getId();
+            return "api/account/" + sender.getKeyCloakUserId();
         }
         return null;
     }

@@ -12,7 +12,11 @@ import java.util.stream.Collectors;
 public class Account {
 
     @Id
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "keycloak_user_id")
+    private String keyCloakUserId;
 
     @Column
     private String firstName;
@@ -54,16 +58,24 @@ public class Account {
 
     public Account() {}
 
-    public Account(String id) {
+    public Account(Long id) {
         this.id = id;
     }
 
-    public String getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getKeyCloakUserId() {
+        return keyCloakUserId;
+    }
+
+    public void setKeyCloakUserId(String keyCloakUserId) {
+        this.keyCloakUserId = keyCloakUserId;
     }
 
     public String getFirstName() {
