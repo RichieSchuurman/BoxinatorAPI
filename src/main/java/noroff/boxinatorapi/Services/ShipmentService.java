@@ -29,14 +29,16 @@ public class ShipmentService {
     @Autowired
     private CountryRepository countryRepository;
 
+    @Autowired
+    private AccountService accountService;
+
     public ResponseEntity<CommonResponse> getAllCurrentShipments(HttpServletRequest request, Jwt principal) {
         List<Shipment> currentShipments = new ArrayList<>();
-        String userRole = principal.getClaimAsStringList("roles").get(0);
-        Account currentUser = accountRepository.getById(principal.getSubject());
+        Account currentUser = accountService.getAccountFromJwt(principal);
         Command cmd = new Command(request);
         CommonResponse commonResponse = new CommonResponse();
 
-        if (AccountType.valueOf(userRole).equals(AccountType.REGISTERED_USER)) {
+        if (currentUser.getAccountType().equals(AccountType.REGISTERED_USER)) {
             // Only add shipments that are non-completed and non-cancelled
             for (ShipmentStatus shipmentStatus: ShipmentStatus.values()) {
                 if (shipmentStatus.equals(ShipmentStatus.CREATED) || shipmentStatus.equals(ShipmentStatus.IN_TRANSIT) || shipmentStatus.equals(ShipmentStatus.RECEIVED)) {
@@ -44,7 +46,7 @@ public class ShipmentService {
                     currentShipments.addAll(currentShipmentsBySender);
                 }
             }
-        } else if (AccountType.valueOf(userRole).equals(AccountType.ADMINISTRATOR)) {
+        } else if (currentUser.getAccountType().equals(AccountType.ADMINISTRATOR)) {
             for (ShipmentStatus shipmentStatus: ShipmentStatus.values()) {
                 if (shipmentStatus.equals(ShipmentStatus.CREATED) || shipmentStatus.equals(ShipmentStatus.IN_TRANSIT) || shipmentStatus.equals(ShipmentStatus.RECEIVED)) {
                     List<Shipment> allCurrentShipments = shipmentRepository.findAllByShipmentStatus(shipmentStatus);
@@ -64,8 +66,7 @@ public class ShipmentService {
 
     public ResponseEntity<CommonResponse> getShipmentById(HttpServletRequest request, Long id, Jwt principal) {
         Shipment shipment;
-        String userId = principal.getClaimAsString("sub");
-        String userRole = principal.getClaimAsStringList("roles").get(0);
+        Account currentUser = accountService.getAccountFromJwt(principal);
         Command cmd = new Command(request);
         CommonResponse commonResponse = new CommonResponse();
         HttpStatus resp;
@@ -78,7 +79,10 @@ public class ShipmentService {
             Optional<Shipment> shipmentRepos = shipmentRepository.findById(id);
             shipment = shipmentRepos.get();
 
-            if (shipment.getSender().getId().equals(userId) || AccountType.valueOf(userRole).equals(AccountType.ADMINISTRATOR)) {
+            boolean ownsShipment = shipment.getSender().getKeyCloakUserId().equals(currentUser.getKeyCloakUserId());
+            boolean hasAdminRole = currentUser.getAccountType().equals(AccountType.ADMINISTRATOR);
+
+            if (ownsShipment || hasAdminRole) {
                 commonResponse.data = shipment;
                 commonResponse.message = "Found shipment with id: " + shipment.getId();
                 resp = HttpStatus.OK;
@@ -99,15 +103,14 @@ public class ShipmentService {
             ShipmentStatus shipmentStatus,
             Jwt principal) {
         List<Shipment> shipmentsByStatus = new ArrayList<>();
-        String userRole = principal.getClaimAsStringList("roles").get(0);
-        Account currentUser = accountRepository.getById(principal.getSubject());
+        Account currentUser = accountService.getAccountFromJwt(principal);
         Command cmd = new Command(request);
 
         CommonResponse commonResponse = new CommonResponse();
 
-        if (AccountType.valueOf(userRole).equals(AccountType.REGISTERED_USER)) {
+        if (currentUser.getAccountType().equals(AccountType.REGISTERED_USER)) {
             shipmentsByStatus = shipmentRepository.findAllBySenderAndShipmentStatus(currentUser, shipmentStatus);
-        } else if (AccountType.valueOf(userRole).equals(AccountType.ADMINISTRATOR)) {
+        } else if (currentUser.getAccountType().equals(AccountType.ADMINISTRATOR)) {
             shipmentsByStatus = shipmentRepository.findAllByShipmentStatus(shipmentStatus);
         }
         commonResponse.data = shipmentsByStatus;
@@ -119,23 +122,23 @@ public class ShipmentService {
         return new ResponseEntity<>(commonResponse, resp);
     }
 
-    public ResponseEntity<CommonResponse> getShipmentsByCustomer(HttpServletRequest request, String id) {
+    public ResponseEntity<CommonResponse> getShipmentsByCustomer(HttpServletRequest request, String keyCloakUserId) {
         Account customer;
         List<Shipment> shipmentsByCustomer;
         Command cmd = new Command(request);
         CommonResponse commonResponse = new CommonResponse();
         HttpStatus resp;
 
-        if (!accountRepository.existsById(id)) {
+        if (!accountRepository.existsAccountByKeyCloakUserId(keyCloakUserId)) {
             commonResponse.data = null;
             commonResponse.message = "Customer and shipments not found";
             resp = HttpStatus.NOT_FOUND;
         } else {
-            Optional<Account> accountRepos = accountRepository.findById(id);
+            Optional<Account> accountRepos = accountRepository.getAccountByKeyCloakUserId(keyCloakUserId);
             customer = accountRepos.get();
             shipmentsByCustomer = shipmentRepository.findAllBySender(customer);
             commonResponse.data = shipmentsByCustomer;
-            commonResponse.message = "Found shipments of customer with id: " + id;
+            commonResponse.message = "Found shipments of customer with id: " + keyCloakUserId;
             resp = HttpStatus.OK;
         }
 
@@ -145,18 +148,16 @@ public class ShipmentService {
     }
 
     public ResponseEntity<CommonResponse> addShipment(HttpServletRequest request, Shipment shipment, Jwt principal) {
-        String userId = principal.getClaimAsString("sub");
-        Account sender = accountRepository.getById(userId);
+        Account currentUser = accountService.getAccountFromJwt(principal);
         Command cmd = new Command(request);
         HttpStatus resp;
         CommonResponse commonResponse = new CommonResponse();
 
         shipment.setShipmentStatus(ShipmentStatus.CREATED);
-        shipment.setSender(sender);
+        shipment.setSender(currentUser);
 
         Country destinationCountry = countryRepository.getCountryByName(shipment.getDestinationCountry().getName());
         shipment.setDestinationCountry(destinationCountry);
-
 
         shipment = shipmentRepository.save(shipment);
         commonResponse.data = shipment;
@@ -170,8 +171,9 @@ public class ShipmentService {
 
     public ResponseEntity<CommonResponse> updateShipment(HttpServletRequest request, Long id, Shipment updatedShipment, Jwt principal) {
         Shipment shipment;
-        String userId = principal.getClaimAsString("sub");
-        String userRole = principal.getClaimAsStringList("roles").get(0);
+//        String userId = principal.getClaimAsString("sub");
+//        String userRole = principal.getClaimAsStringList("roles").get(0);
+        Account currentUser = accountService.getAccountFromJwt(principal);
         Command cmd = new Command(request);
         CommonResponse commonResponse = new CommonResponse();
         HttpStatus resp;
@@ -183,9 +185,13 @@ public class ShipmentService {
         } else {
             Optional<Shipment> shipmentRepos = shipmentRepository.findById(id);
             shipment = shipmentRepos.get();
-            if (shipment.getSender().getId().equals(userId) || AccountType.valueOf(userRole).equals(AccountType.ADMINISTRATOR)) {
+
+            boolean ownsShipment = shipment.getSender().getKeyCloakUserId().equals(currentUser.getKeyCloakUserId());
+            boolean hasAdminRole = currentUser.getAccountType().equals(AccountType.ADMINISTRATOR);
+
+            if (ownsShipment || hasAdminRole) {
                 // Any non-Administrator users may only cancel a shipment
-                if (AccountType.valueOf(userRole).equals(AccountType.REGISTERED_USER)) {
+                if (currentUser.getAccountType().equals(AccountType.REGISTERED_USER)) {
                     shipment.setShipmentStatus(ShipmentStatus.CANCELED);
                 } else {
                     // An administrator can make any changes they wish to a shipment
@@ -245,117 +251,4 @@ public class ShipmentService {
         Logger.getInstance().logCommand(cmd);
         return new ResponseEntity<>(commonResponse, resp);
     }
-
-
-
-//    public ResponseEntity<CommonResponse> getAllShipments(HttpServletRequest request, Jwt principal) {
-//        String userRole = principal.getClaimAsStringList("roles").get(0);
-//        List<Shipment> shipments;
-//        Command cmd = new Command(request);
-//        CommonResponse commonResponse = new CommonResponse();
-//
-//        if (AccountType.valueOf(userRole).equals(AccountType.ADMINISTRATOR)) {
-//            shipments = shipmentRepository.findAll();
-//        } else {
-//            Account sender = accountService.getAccountByJwt(principal);
-//            shipments = shipmentRepository.findAllBySender(sender);
-//        }
-//
-//        commonResponse.data = shipments;
-//        commonResponse.message = "All shipments";
-//        HttpStatus resp = HttpStatus.OK;
-//
-//        cmd.setResult(resp);
-//        Logger.getInstance().logCommand(cmd);
-//        return new ResponseEntity<>(commonResponse, resp);
-//    }
-//
-//    public ResponseEntity<CommonResponse> getCompletedShipments(HttpServletRequest request, ShipmentStatus shipmentStatus) {
-//        Command cmd = new Command(request);
-//
-//        CommonResponse commonResponse = new CommonResponse();
-//        commonResponse.data = shipmentRepository.findAllByShipmentStatus(shipmentStatus);
-//        commonResponse.message = "All completed shipments";
-//
-//        HttpStatus resp = HttpStatus.OK;
-//
-//        cmd.setResult(resp);
-//        Logger.getInstance().logCommand(cmd);
-//        return new ResponseEntity<>(commonResponse, resp);
-//    }
-//
-//    public ResponseEntity<CommonResponse> getCanceledShipments(HttpServletRequest request, ShipmentStatus shipmentStatus) {
-//        Command cmd = new Command(request);
-//
-//        CommonResponse commonResponse = new CommonResponse();
-//        commonResponse.data = shipmentRepository.findAllByShipmentStatus(shipmentStatus);
-//        commonResponse.message = "All canceled shipments";
-//
-//        HttpStatus resp = HttpStatus.OK;
-//
-//        cmd.setResult(resp);
-//        Logger.getInstance().logCommand(cmd);
-//        return new ResponseEntity<>(commonResponse, resp);
-//    }
-//
-//
-//    public ResponseEntity<CommonResponse> getShipmentById(HttpServletRequest request, Long id) {
-//        Command cmd = new Command(request);
-//
-//        CommonResponse commonResponse = new CommonResponse();
-//        commonResponse.data = shipmentRepository.findById(id);
-//        commonResponse.message = "All shipments";
-//
-//        HttpStatus resp = HttpStatus.OK;
-//
-//        cmd.setResult(resp);
-//        Logger.getInstance().logCommand(cmd);
-//        return new ResponseEntity<>(commonResponse, resp);
-//    }
-//
-//    //TODO
-//    //GET /shipments/customer/:customer_id
-//
-//    public ResponseEntity<CommonResponse> updateShipment(HttpServletRequest request, Long id, Shipment updatedShipment) {
-//        Shipment shipment;
-//        Command cmd = new Command(request);
-//        CommonResponse commonResponse = new CommonResponse();
-//        HttpStatus resp;
-//
-//        if (shipmentRepository.existsById(id)) {
-//            Optional<Shipment> shipmentRepos = shipmentRepository.findById(id);
-//            shipment = shipmentRepos.get();
-//
-//            if (updatedShipment.getReceiverName() != null) {
-//                shipment.setReceiverName(updatedShipment.getReceiverName());
-//            }
-//
-//            if (updatedShipment.getWeightOption() != 0) {
-//                shipment.setWeightOption(updatedShipment.getWeightOption());
-//            }
-//
-//            if (updatedShipment.getBoxColor() != null) {
-//                shipment.setBoxColor(updatedShipment.getBoxColor());
-//            }
-//
-//            if (updatedShipment.getDestinationCountry() != null) {
-//                shipment.setDestinationCountry(updatedShipment.getDestinationCountry());
-//            }
-//
-//            shipment = shipmentRepository.save(shipment);
-//
-//            commonResponse.data = shipment;
-//            commonResponse.message = "Updated shipment with id: " + shipment.getId();
-//            resp = HttpStatus.OK;
-//        } else {
-//            commonResponse.data = null;
-//            commonResponse.message = "Shipment with id " + id + " not found";
-//            resp = HttpStatus.NOT_FOUND;
-//        }
-//
-//        cmd.setResult(resp);
-//        Logger.getInstance().logCommand(cmd);
-//        return new ResponseEntity<>(commonResponse, resp);
-//    }
-//
 }

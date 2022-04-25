@@ -37,10 +37,11 @@ public class AccountController {
                         schema = @Schema(implementation = CommonResponse.class))})
     })
     @PreAuthorize("hasRole('ADMINISTRATOR') or hasRole('REGISTERED_USER')")
-    @GetMapping("/{id}")
-    public ResponseEntity<CommonResponse> getAccountById(
-            HttpServletRequest request, @Parameter(description = "id of the account to be fetched") @PathVariable String id) {
-        return accountService.getAccountById(request, id);
+    @GetMapping("/{keyCloakUserId}")
+    public ResponseEntity<CommonResponse> getAccountByKeyCloakUserId(
+            HttpServletRequest request,
+            @Parameter(description = "id of the account to be fetched") @PathVariable String keyCloakUserId) {
+        return accountService.getAccountByKeyCloakUserId(request, keyCloakUserId);
     }
 
     @Operation(summary = "Add a new account (only accessible by administrators)")
@@ -59,38 +60,38 @@ public class AccountController {
         return accountService.addAccount(request, account);
     }
 
-    @Operation(summary = "Update a specific account (only accessible by the registered user who owns this account and administrators)")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Updated the selected account",
-                    content = { @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = Account.class))}),
-            @ApiResponse(responseCode = "403", description = "Updating someone else's account is not allowed",
-                    content = { @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = CommonResponse.class))})
-    })
-    @PreAuthorize("hasRole('ADMINISTRATOR') or hasRole('REGISTERED_USER')")
-    @PutMapping("/{id}")
-    public ResponseEntity<CommonResponse> updateAccount(
-            HttpServletRequest request,
-            @Parameter(description = "id of the account to be updated") @PathVariable  String id,
-            @RequestBody Account updatedAccount,
-            @AuthenticationPrincipal Jwt principal) {
-        return accountService.updateAccount(request, id, updatedAccount, principal);
-    }
+//    @Operation(summary = "Update a specific account (only accessible by the registered user who owns this account and administrators)")
+//    @ApiResponses(value = {
+//            @ApiResponse(responseCode = "200", description = "Updated the selected account",
+//                    content = { @Content(mediaType = "application/json",
+//                            schema = @Schema(implementation = Account.class))}),
+//            @ApiResponse(responseCode = "403", description = "Updating someone else's account is not allowed",
+//                    content = { @Content(mediaType = "application/json",
+//                            schema = @Schema(implementation = CommonResponse.class))})
+//    })
+//    @PreAuthorize("hasRole('ADMINISTRATOR') or hasRole('REGISTERED_USER')")
+//    @PutMapping("/{id}")
+//    public ResponseEntity<CommonResponse> updateAccount(
+//            HttpServletRequest request,
+//            @Parameter(description = "id of the account to be updated") @PathVariable  String id,
+//            @RequestBody Account updatedAccount,
+//            @AuthenticationPrincipal Jwt principal) {
+//        return accountService.updateAccount(request, id, updatedAccount, principal);
+//    }
 
-    @Operation(summary = "Delete an account (only accessible by administrators)")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "Deleted the selected account"),
-            @ApiResponse(responseCode = "403", description = "Only administrators can delete an account"),
-            @ApiResponse(responseCode = "404", description = "Account to be deleted not found",
-                        content = { @Content(mediaType = "application/json",
-                        schema = @Schema(implementation = CommonResponse.class))})
-    })
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
-    @DeleteMapping("/{id}")
-    public ResponseEntity<CommonResponse> deleteAccount(
-            HttpServletRequest request,
-            @Parameter(description = "id of the account to be deleted") @PathVariable String id) {
-        return accountService.deleteAccount(request, id);
-    }
+//    @Operation(summary = "Delete an account (only accessible by administrators)")
+//    @ApiResponses(value = {
+//            @ApiResponse(responseCode = "204", description = "Deleted the selected account"),
+//            @ApiResponse(responseCode = "403", description = "Only administrators can delete an account"),
+//            @ApiResponse(responseCode = "404", description = "Account to be deleted not found",
+//                        content = { @Content(mediaType = "application/json",
+//                        schema = @Schema(implementation = CommonResponse.class))})
+//    })
+//    @PreAuthorize("hasRole('ADMINISTRATOR')")
+//    @DeleteMapping("/{id}")
+//    public ResponseEntity<CommonResponse> deleteAccount(
+//            HttpServletRequest request,
+//            @Parameter(description = "id of the account to be deleted") @PathVariable String id) {
+//        return accountService.deleteAccount(request, id);
+//    }
 }

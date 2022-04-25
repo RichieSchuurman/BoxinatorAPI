@@ -21,21 +21,44 @@ public class AccountService {
     @Autowired
     private AccountRepository accountRepository;
 
-    public ResponseEntity<CommonResponse> getAccountById(HttpServletRequest request, String id) {
+    public Account getAccountFromJwt(Jwt principal) {
+        String userId = principal.getClaimAsString("sub");
+        String userRole = principal.getClaimAsStringList("roles").get(0);
+        String userFirstName = principal.getClaimAsString("given_name");
+        String userLastName = principal.getClaimAsString("family_name");
+        String userEmail = principal.getClaimAsString("email");
+
+        Optional<Account> account = accountRepository.getAccountByKeyCloakUserId(userId);
+
+        if (account.isPresent()) {
+            return account.get();
+        }
+
+        Account newAccount = new Account();
+        newAccount.setKeyCloakUserId(userId);
+        newAccount.setFirstName(userFirstName);
+        newAccount.setLastName(userLastName);
+        newAccount.setEmail(userEmail);
+        newAccount.setAccountType(AccountType.valueOf(userRole));
+
+        return accountRepository.save(newAccount);
+    }
+
+    public ResponseEntity<CommonResponse> getAccountByKeyCloakUserId(HttpServletRequest request, String keyCloakUserId) {
         Account account;
         Command cmd = new Command(request);
         CommonResponse commonResponse = new CommonResponse();
         HttpStatus resp;
 
-        if (!accountRepository.existsById(id)) {
+        if (!accountRepository.existsAccountByKeyCloakUserId(keyCloakUserId)) {
             commonResponse.data = null;
             commonResponse.message = "Account not found";
             resp = HttpStatus.NOT_FOUND;
         } else {
-            Optional<Account> accountRepos = accountRepository.findById(id);
+            Optional<Account> accountRepos = accountRepository.getAccountByKeyCloakUserId(keyCloakUserId);
             account = accountRepos.get();
             commonResponse.data = account;
-            commonResponse.message = "Found account with id: " + account.getId();
+            commonResponse.message = "Found account with id: " + account.getKeyCloakUserId();
             resp = HttpStatus.OK;
         }
 
@@ -66,83 +89,83 @@ public class AccountService {
         return new ResponseEntity<>(commonResponse, resp);
     }
 
-    public ResponseEntity<CommonResponse> updateAccount(
-            HttpServletRequest request,
-            String id,
-            Account updatedAccount,
-            Jwt principal) {
-        Account account;
-        Command cmd = new Command(request);
-        CommonResponse commonResponse = new CommonResponse();
-        HttpStatus resp;
-        String userRole = principal.getClaimAsStringList("roles").get(0);
+//    public ResponseEntity<CommonResponse> updateAccount(
+//            HttpServletRequest request,
+//            String id,
+//            Account updatedAccount,
+//            Jwt principal) {
+//        Account account;
+//        Command cmd = new Command(request);
+//        CommonResponse commonResponse = new CommonResponse();
+//        HttpStatus resp;
+//        String userRole = principal.getClaimAsStringList("roles").get(0);
+//
+//        if (!AccountType.valueOf(userRole).equals(AccountType.ADMINISTRATOR) && !principal.getClaimAsString("sub").equals(id)) {
+//            commonResponse.data = null;
+//            commonResponse.message = "You are only allowed to update your own account";
+//            resp = HttpStatus.FORBIDDEN;
+//        } else {
+//            Optional<Account> accountRepos = accountRepository.findById(id);
+//            account = accountRepos.get();
+//
+//            if (updatedAccount.getFirstName() != null) {
+//                account.setFirstName(updatedAccount.getFirstName());
+//            }
+//
+//            if (updatedAccount.getLastName() != null) {
+//                account.setLastName(updatedAccount.getLastName());
+//            }
+//
+//            if (updatedAccount.getEmail() != null) {
+//                account.setEmail(updatedAccount.getEmail());
+//            }
+//
+//            if (updatedAccount.getDateOfBirth() != null) {
+//                account.setDateOfBirth(updatedAccount.getDateOfBirth());
+//            }
+//            if (updatedAccount.getContactNumber() != null) {
+//                account.setContactNumber(updatedAccount.getContactNumber());
+//            }
+//            if (updatedAccount.getCountryOfResidence() != null) {
+//                account.setCountryOfResidence(updatedAccount.getCountryOfResidence());
+//            }
+//            if (updatedAccount.getPostalCode() != null) {
+//                account.setPostalCode(updatedAccount.getPostalCode());
+//            }
+//
+//            if (AccountType.valueOf(userRole).equals(AccountType.ADMINISTRATOR)) {
+//                if (updatedAccount.getAccountType() != null) {
+//                    account.setAccountType(updatedAccount.getAccountType());
+//                }
+//            }
+//
+//            account = accountRepository.save(account);
+//            commonResponse.data = account;
+//            commonResponse.message = "Updated account with id " + id;
+//            resp = HttpStatus.OK;
+//        }
+//
+//        cmd.setResult(resp);
+//        Logger.getInstance().logCommand(cmd);
+//        return new ResponseEntity<>(commonResponse, resp);
+//    }
 
-        if (!AccountType.valueOf(userRole).equals(AccountType.ADMINISTRATOR) && !principal.getClaimAsString("sub").equals(id)) {
-            commonResponse.data = null;
-            commonResponse.message = "You are only allowed to update your own account";
-            resp = HttpStatus.FORBIDDEN;
-        } else {
-            Optional<Account> accountRepos = accountRepository.findById(id);
-            account = accountRepos.get();
-
-            if (updatedAccount.getFirstName() != null) {
-                account.setFirstName(updatedAccount.getFirstName());
-            }
-
-            if (updatedAccount.getLastName() != null) {
-                account.setLastName(updatedAccount.getLastName());
-            }
-
-            if (updatedAccount.getEmail() != null) {
-                account.setEmail(updatedAccount.getEmail());
-            }
-
-            if (updatedAccount.getDateOfBirth() != null) {
-                account.setDateOfBirth(updatedAccount.getDateOfBirth());
-            }
-            if (updatedAccount.getContactNumber() != null) {
-                account.setContactNumber(updatedAccount.getContactNumber());
-            }
-            if (updatedAccount.getCountryOfResidence() != null) {
-                account.setCountryOfResidence(updatedAccount.getCountryOfResidence());
-            }
-            if (updatedAccount.getPostalCode() != null) {
-                account.setPostalCode(updatedAccount.getPostalCode());
-            }
-
-            if (AccountType.valueOf(userRole).equals(AccountType.ADMINISTRATOR)) {
-                if (updatedAccount.getAccountType() != null) {
-                    account.setAccountType(updatedAccount.getAccountType());
-                }
-            }
-
-            account = accountRepository.save(account);
-            commonResponse.data = account;
-            commonResponse.message = "Updated account with id " + id;
-            resp = HttpStatus.OK;
-        }
-
-        cmd.setResult(resp);
-        Logger.getInstance().logCommand(cmd);
-        return new ResponseEntity<>(commonResponse, resp);
-    }
-
-    public ResponseEntity<CommonResponse> deleteAccount(HttpServletRequest request, String id) {
-        Command cmd = new Command(request);
-        CommonResponse commonResponse = new CommonResponse();
-        HttpStatus resp;
-
-        if (!accountRepository.existsById(id)) {
-            commonResponse.data = null;
-            commonResponse.message = "Account not found";
-            resp = HttpStatus.NOT_FOUND;
-        } else {
-            accountRepository.deleteById(id);
-            resp = HttpStatus.NO_CONTENT;
-        }
-
-        cmd.setResult(resp);
-        Logger.getInstance().logCommand(cmd);
-        return new ResponseEntity<>(commonResponse, resp);
-    }
+//    public ResponseEntity<CommonResponse> deleteAccount(HttpServletRequest request, String id) {
+//        Command cmd = new Command(request);
+//        CommonResponse commonResponse = new CommonResponse();
+//        HttpStatus resp;
+//
+//        if (!accountRepository.existsById(id)) {
+//            commonResponse.data = null;
+//            commonResponse.message = "Account not found";
+//            resp = HttpStatus.NOT_FOUND;
+//        } else {
+//            accountRepository.deleteById(id);
+//            resp = HttpStatus.NO_CONTENT;
+//        }
+//
+//        cmd.setResult(resp);
+//        Logger.getInstance().logCommand(cmd);
+//        return new ResponseEntity<>(commonResponse, resp);
+//    }
 }

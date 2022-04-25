@@ -95,11 +95,11 @@ public class ShipmentController {
                             schema = @Schema(implementation = CommonResponse.class))})
     })
     @PreAuthorize("hasRole('ADMINISTRATOR') or hasRole('REGISTERED_USER')")
-    @GetMapping("/customer/{id}")
+    @GetMapping("/customer/{keyCloakUserId}")
     public ResponseEntity<CommonResponse> getShipmentsByCustomer(
             HttpServletRequest request,
-            @Parameter(description = "id of the customer to be fetched") @PathVariable String id) {
-        return shipmentService.getShipmentsByCustomer(request, id);
+            @Parameter(description = "id of the customer to be fetched") @PathVariable String keyCloakUserId) {
+        return shipmentService.getShipmentsByCustomer(request, keyCloakUserId);
     }
 
     @Operation(summary = "Add a new shipment (only accessible by registered users and administrators)")
