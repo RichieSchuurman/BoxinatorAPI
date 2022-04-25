@@ -1,5 +1,5 @@
 INSERT INTO account (
-    id,
+    keycloak_user_id,
     first_name,
     last_name,
     email,
@@ -20,7 +20,7 @@ INSERT INTO account (
     'REGISTERED_USER'
 );
 INSERT INTO account (
-    id,
+    keycloak_user_id,
     first_name,
     last_name,
     email,
@@ -41,7 +41,7 @@ INSERT INTO account (
     'REGISTERED_USER'
 );
 INSERT INTO account (
-    id,
+    keycloak_user_id,
     first_name,
     last_name,
     email,
@@ -107,9 +107,9 @@ INSERT INTO shipment(receiver_name, weight_option, box_color, shipment_status) V
     'CANCELED'
 );
 
-UPDATE shipment SET account_id = 'a881cded-b432-4f34-8e0c-8a2444a4c839', country_id = 1 WHERE id = 1;
-UPDATE shipment SET account_id = 'a881cded-b432-4f34-8e0c-8a2444a4c839', country_id = 2 WHERE id = 2;
-UPDATE shipment SET account_id = '9b13edfa-bc24-4303-9e79-953f22b65a30', country_id = 6 WHERE id = 3;
-UPDATE shipment SET account_id = '9b13edfa-bc24-4303-9e79-953f22b65a30', country_id = 5 WHERE id = 4;
-UPDATE shipment SET account_id = 'a881cded-b432-4f34-8e0c-8a2444a4c839', country_id = 2 WHERE id = 5;
-UPDATE shipment SET account_id = '9b13edfa-bc24-4303-9e79-953f22b65a30', country_id = 4 WHERE id = 6;
+UPDATE shipment SET account_id = 1, country_id = 1 WHERE id = 1;
+UPDATE shipment SET account_id = 1, country_id = 2 WHERE id = 2;
+UPDATE shipment SET account_id = 1, country_id = 6 WHERE id = 3;
+UPDATE shipment SET account_id = 2, country_id = 5 WHERE id = 4;
+UPDATE shipment SET account_id = 2, country_id = 2 WHERE id = 5;
+UPDATE shipment SET account_id = 2, country_id = 4 WHERE id = 6;
